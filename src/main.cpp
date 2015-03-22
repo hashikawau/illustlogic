@@ -1,13 +1,15 @@
 
 #include <iostream>
-#include <string>
 #include <vector>
-#include <sstream>
+
 #include <fstream>
 
 #include <memory>
 class IllustLogicMatrix;
 typedef std::shared_ptr<IllustLogicMatrix> IllustLogicMatrixPtr;
+
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 /**
  *
@@ -18,6 +20,7 @@ public:
     static IllustLogicMatrixPtr create(const std::string& inputDataFilePath);
 
     bool isValidSolution();
+
 };
 
 /**
@@ -25,137 +28,114 @@ public:
  */
 IllustLogicMatrixPtr IllustLogicMatrix::create(const std::string& inputDataFilePath)
 {
-//    delete [] _ischanged;
-//    delete [] _flagblack;
-//    delete [] _flagwhite;
-//    
-//    if(_blacks){
-//        for(int i=0; i< _numver +_numhor; ++i){
-//            delete [] _blacks[i];
-//        }
-//        delete [] _blacks;
-//    }
-//    delete [] _numblack;
-//    
-//    _blacks   =0;
-//    _numblack =0;
-//    
-//    _flagblack =0;
-//    _flagwhite =0;
-//    _ischanged =0;
-//    
-//    char name[255];
-//    wcstombs(name, filename.toCharArray(), filename.length() +1);
-//    ifstream stream;
-//    stream.open(name);
-//    //===========================================================
-//    if(stream){
-//        char ch;
-//        char str[10];
-//        LinkedList<int> list;
-//        int count =0;
-//        while(stream.get(ch)){
-//            if(ch == '\n'){
-//                if(count){
-//                    str[count] = '\0';
-//                    list.addLast(Integer::parseInt(String(str)));
-//                }
-//                list.addLast(0);
-//                count =0;
-//            }else
-//            if(ch == ' '){
-//                str[count] = '\0';
-//                list.addLast(Integer::parseInt(String(str)));
-//                count =0;
-//            }else{
-//                str[count] = ch;
-//                ++count;
-//            }
-//        }
-//        if(count){
-//            str[count] = '\0';
-//            list.addLast(Integer::parseInt(String(str)));
-//        }
-//        list.addLast(0);
-//        
-//        stream.close();
-//        
-//        //===========================================================
-//        int size = list.size();
-//        int array[size];
-//        list.toArray(array);
-//        int num[] ={0, 0, 0};
-//        int index =0;
-//        int countzero =0;
-//        for(int i=0; i< size; ++i){
-//            if(array[i]){
-//                if(countzero >1){
-//                    ++index;
-//                }
-//                countzero =0;
-//                if(!index){
-//                    array[i] =0;
-//                }
-//            }else{
-//                if(!countzero){
-//                    ++num[index];
-//                }
-//                ++countzero;
-//            }
-//        }
-//        
-//        _numver = num[1];
-//        _numhor = num[2];
-//        
-//        
-//        _blacks   = new int* [_numver +_numhor];
-//        _numblack = new char [_numver +_numhor];
-//        
-//        int start =0;
-//        index =-1;
-//        count =0;
-//        countzero =0;
-//        for(int i=0; i< size; ++i){
-//            if(array[i]){
-//                if(countzero >0){
-//                    start =i;
-//                    ++index;
-//                }
-//                countzero =0;
-//                ++count;
-//            }else{
-//                if(countzero == 0){
-//                    _numblack[index] =count;
-//                    _blacks[index] = new int [count];
-//                    for(int j= start, k=0; j< i; ++j){
-//                        if(array[j]){
-//                            _blacks[index][k] = array[j];
-//                            ++k;
-//                        }
-//                    }
-//                }
-//                count =0;
-//                ++countzero;
-//            }
-//        }
-//        
-//        //===========================================================
-//        _flagblack = new bool [_numver *_numhor];
-//        _flagwhite = new bool [_numver *_numhor];
-//        for(int i=0; i< _numver *_numhor; ++i){
-//            _flagblack[i] =false;
-//            _flagwhite[i] =false;
-//        }
-//        _ischanged = new bool [_numver +_numhor];
-//        for(int i=0; i< _numver +_numhor; ++i){
-//            _ischanged[i] =true;
-//        }
-//    }else{
-//        _numver =0;
-//        _numhor =0;
-//    }
-//    
-//    setSize(_gridsize *_numhor +2, _gridsize *_numver +2);
+    std::string delimiter = " ";
+
+    //-----------------------------------------------------
+    // open file
+    //-----------------------------------------------------
+    std::ifstream file{inputDataFilePath};
+    if(!file)
+        throw std::runtime_error{"permission denied"};
+
+    //-----------------------------------------------------
+    // read number-of-rows, number-of-columns
+    //-----------------------------------------------------
+    int numberOfRows;
+    int numberOfCols;
+    for(std::string line; std::getline(file, line); )
+    {
+        boost::algorithm::trim(line);
+        if(line.empty())
+            continue;
+
+        if(line.at(0) == '#')
+            continue;
+
+        std::vector<std::string> words;
+        boost::algorithm::split(words, line, delimiter);
+        // TODO: check format
+        numberOfRows = words.at(0);
+        numberOfCols = words.at(1);
+    }
+
+    //-----------------------------------------------------
+    // read row
+    //-----------------------------------------------------
+    // TODO: rename variable "hintsOfRows"
+    std::vector<std::vector<int>> hintsOfRows;
+    {
+        const int maxNumberOfLines =numberOfRows;
+        std::vector<std::vector<int>>& hintsOfLines = hintsOfRows;
+
+        hintsOfLines.resize(maxNumberOfLines);
+        int count =0;
+        for(std::string line; std::getline(file, line); )
+        {
+            boost::algorithm::trim(line);
+            if(line.empty())
+                continue;
+
+            if(line.at(0) == '#')
+                continue;
+
+            std::vector<std::string> words;
+            boost::algorithm::split(words, line, delimiter);
+
+            // TODO: check format
+            std::vector<int> hint;
+            for(const std::string& word: words)
+            {
+                hint.push_back(std::stoi(word));
+            }
+            hintsOfLines.push_back(std::move(hint));
+
+            // termination condition
+            ++count;
+            if(count >= maxNumberOfLines)
+                break;
+
+        }
+    }
+
+    //-----------------------------------------------------
+    // read columns
+    //-----------------------------------------------------
+    // TODO: rename variable "hintsOfCols"
+    std::vector<std::vector<int>> hintsOfCols;
+    {
+        const int maxNumberOfLines =numberOfCols;
+        std::vector<std::vector<int>>& hintsOfLines = hintsOfCols;
+
+        hintsOfLines.resize(maxNumberOfLines);
+        int count =0;
+        for(std::string line; std::getline(file, line); )
+        {
+            boost::algorithm::trim(line);
+            if(line.empty())
+                continue;
+
+            if(line.at(0) == '#')
+                continue;
+
+            std::vector<std::string> words;
+            boost::algorithm::split(words, line, delimiter);
+
+            // TODO: check format
+            std::vector<int> hint;
+            for(const std::string& word: words)
+            {
+                hint.push_back(std::stoi(word));
+            }
+            hintsOfLines.push_back(std::move(hint));
+
+            // termination condition
+            ++count;
+            if(count >= maxNumberOfLines)
+                break;
+
+        }
+    }
+
     return std::make_shared<IllustLogicMatrix>();
 }
 
@@ -892,11 +872,11 @@ int main(int argc, char* argv[])
     }
 
     std::string inputDataFilePath = arg[1];
-    //if(!boost::filesystem::exists(inputDataFilePath))
-    //{
-    //    std::cerr << "input data file not exists: " << inputDataFilePath << std::endl;
-    //    return 1;
-    //}
+    if(!boost::filesystem::exists(inputDataFilePath))
+    {
+        std::cerr << "input data file not exists: " << inputDataFilePath << std::endl;
+        return 1;
+    }
 
     //-----------------------------------------------------
     // read input data file 
