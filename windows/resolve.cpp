@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     }
 
     auto logic = std::make_unique<IllustrationLogicSolver>();
-    logic->setNumGrid(inputString.str());
+    logic->init(inputString.str());
     //auto logic = IllustrationLogicSolver::createFrom(inputString.str());
     for (int k = 0; k < 500; ++k)
         for (int i = 0; i < logic->getNumVer(); ++i)

@@ -24,7 +24,7 @@ clean:
 	rm IllustrationLogic.map
 	rm IllustrationLogic.obj
 
-resolve: resolve.cpp IllustrationLogicSolver.cpp
+resolve: resolve.cpp IllustrationLogicSolver.cpp IllustrationLogicSolver.h
 	g++ -std=c++14 -o resolve resolve.cpp IllustrationLogicSolver.cpp
 
 

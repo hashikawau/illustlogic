@@ -1,15 +1,26 @@
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <memory>
 
 #include "IllustrationLogicSolver.h"
 
+std::vector<std::string> split(const std::string& input, char delimiter)
+{
+    std::istringstream stream(input);
+
+    std::string field;
+    std::vector<std::string> result;
+    while (std::getline(stream, field, delimiter)) {
+        result.push_back(field);
+    }
+    return result;
+}
+
 IllustrationLogicSolver::IllustrationLogicSolver()
 {
     _numblack =0;
     _blacks   =0;
-
-    _gridsize =10;
 
     _flagblack =0;
     _flagwhite =0;
@@ -38,218 +49,54 @@ IllustrationLogicSolver::~IllustrationLogicSolver()
 }
 
 //std::shared_ptr<IllustrationLogicSolver> IllustrationLogicSolver::createFrom(const std::string& inputString)
-void IllustrationLogicSolver::setNumGrid(const std::string& inputString)
+void IllustrationLogicSolver::init(const std::string& inputString)
 {
-    //std::istream& stream = std::cin;
-    //if(!stream){
-    //    _numver =0;
-    //    _numhor =0;
-    //    return;
-    //}
-
-    char str[10];
-    //LinkedList<int> list;
-    std::vector<int> list;
-    int count =0;
-    for (char ch: inputString){
-        if(ch == '\n'){
-            if(count){
-                str[count] = '\0';
-                list.push_back(std::stoi(str));
-            }
-            list.push_back(0);
-            count =0;
-        }else
-        if(ch == ' '){
-            str[count] = '\0';
-            list.push_back(std::stoi(str));
-            count =0;
-        }else{
-            str[count] = ch;
-            ++count;
-        }
-    }
-    if(count){
-        str[count] = '\0';
-        list.push_back(std::stoi(str));
-    }
-    list.push_back(0);
-
-    //===========================================================
-    int size = list.size();
-    std::vector<int> array = list;
-    int num[] ={0, 0, 0};
-    int index =0;
-    int countzero =0;
-    for(int i=0; i< size; ++i){
-        if(array[i]){
-            if(countzero >1){
-                ++index;
-            }
-            countzero =0;
-            if(!index){
-                array[i] =0;
-            }
-        }else{
-            if(!countzero){
-                ++num[index];
-            }
-            ++countzero;
-        }
-    }
-
-    _numver = num[1];
-    _numhor = num[2];
-
-    _blacks   = new int* [_numver +_numhor];
-    _numblack = new char [_numver +_numhor];
-
-    int start =0;
-    index =-1;
-    count =0;
-    countzero =0;
-    for(int i=0; i< size; ++i){
-        if(array[i]){
-            if(countzero >0){
-                start =i;
-                ++index;
-            }
-            countzero =0;
-            ++count;
-        }else{
-            if(countzero == 0 && count > 0){
-                _numblack[index] =count;
-                _blacks[index] = new int [count];
-                for(int j= start, k=0; j< i; ++j){
-                    if(array[j]){
-                        _blacks[index][k] = array[j];
-                        ++k;
-                    }
-                }
-            }
-            count =0;
-            ++countzero;
-        }
-    }
-
-    //===========================================================
-    _flagblack = new bool [_numver *_numhor];
-    _flagwhite = new bool [_numver *_numhor];
-    for(int i=0; i< _numver *_numhor; ++i){
-        _flagblack[i] =false;
-        _flagwhite[i] =false;
-    }
-    _ischanged = new bool [_numver +_numhor];
-    for(int i=0; i< _numver +_numhor; ++i){
-        _ischanged[i] =true;
-    }
-}
-
-void IllustrationLogicSolver::setNumGrid()
-{
-    std::istream& stream = std::cin;
-    if(!stream){
+    if (inputString.size() == 0) {
         _numver =0;
         _numhor =0;
         return;
     }
 
-    char ch;
-    char str[10];
-    //LinkedList<int> list;
-    std::vector<int> list;
-    int count =0;
-    while(stream.get(ch)){
-        if(ch == '\n'){
-            if(count){
-                str[count] = '\0';
-                list.push_back(std::stoi(str));
-            }
-            list.push_back(0);
-            count =0;
-        }else
-        if(ch == ' '){
-            str[count] = '\0';
-            list.push_back(std::stoi(str));
-            count =0;
-        }else{
-            str[count] = ch;
-            ++count;
+    std::vector<std::string> lines = split(inputString, '\n');
+    int i;
+    // load row size, column size
+    for (i = 0; i < lines.size(); ++i) {
+        if (lines[i].size() == 0)
+            continue;
+
+        std::vector<std::string> words = split(lines[i], ' ');
+        _numver = std::stoi(words[0]);
+        _numhor = std::stoi(words[1]);
+        ++i;
+        break;
+    }
+    // load black numbers
+    _numblack = new int [_numver + _numhor];
+    _blacks   = new int* [_numver + _numhor];
+    int j = 0;
+    for (; i < lines.size(); ++i) {
+        if (lines[i].size() == 0)
+            continue;
+
+        std::vector<std::string> words = split(lines[i], ' ');
+        _numblack[j] = words.size();
+        _blacks[j] = new int [words.size()];
+        for (int k = 0; k < words.size(); ++k) {
+            _blacks[j][k] = std::stoi(words[k]);
         }
-    }
-    if(count){
-        str[count] = '\0';
-        list.push_back(std::stoi(str));
-    }
-    list.push_back(0);
-
-    //===========================================================
-    int size = list.size();
-    std::vector<int> array = list;
-    int num[] ={0, 0, 0};
-    int index =0;
-    int countzero =0;
-    for(int i=0; i< size; ++i){
-        if(array[i]){
-            if(countzero >1){
-                ++index;
-            }
-            countzero =0;
-            if(!index){
-                array[i] =0;
-            }
-        }else{
-            if(!countzero){
-                ++num[index];
-            }
-            ++countzero;
-        }
+        ++j;
     }
 
-    _numver = num[1];
-    _numhor = num[2];
-
-    _blacks   = new int* [_numver +_numhor];
-    _numblack = new char [_numver +_numhor];
-
-    int start =0;
-    index =-1;
-    count =0;
-    countzero =0;
-    for(int i=0; i< size; ++i){
-        if(array[i]){
-            if(countzero >0){
-                start =i;
-                ++index;
-            }
-            countzero =0;
-            ++count;
-        }else{
-            if(countzero == 0 && count > 0){
-                _numblack[index] =count;
-                _blacks[index] = new int [count];
-                for(int j= start, k=0; j< i; ++j){
-                    if(array[j]){
-                        _blacks[index][k] = array[j];
-                        ++k;
-                    }
-                }
-            }
-            count =0;
-            ++countzero;
-        }
+    // init
+    _flagblack = new bool [_numver * _numhor];
+    _flagwhite = new bool [_numver * _numhor];
+    for (int i = 0; i < _numver * _numhor; ++i) {
+        _flagblack[i] = false;
+        _flagwhite[i] = false;
     }
-
-    //===========================================================
-    _flagblack = new bool [_numver *_numhor];
-    _flagwhite = new bool [_numver *_numhor];
-    for(int i=0; i< _numver *_numhor; ++i){
-        _flagblack[i] =false;
-        _flagwhite[i] =false;
-    }
-    _ischanged = new bool [_numver +_numhor];
-    for(int i=0; i< _numver +_numhor; ++i){
-        _ischanged[i] =true;
+    _ischanged = new bool [_numver + _numhor];
+    for (int i = 0; i < _numver + _numhor; ++i) {
+        _ischanged[i] = true;
     }
 }
 
