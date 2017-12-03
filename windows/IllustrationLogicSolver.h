@@ -1,5 +1,6 @@
+#include <memory>
 
-class IllustrationLogicCanvas
+class IllustrationLogicSolver
 {
 private:
     char* _numblack;
@@ -14,9 +15,11 @@ private:
     bool* _ischanged;
 
 public:
-    IllustrationLogicCanvas();
-    virtual ~IllustrationLogicCanvas();
+    IllustrationLogicSolver();
+    virtual ~IllustrationLogicSolver();
 
+    //static std::shared_ptr<IllustrationLogicSolver> createFrom(const std::string& inputString);
+    void setNumGrid(const std::string& inputString);
     void setNumGrid();
     void resetFlags(bool black, bool white);
     int getNumVer(){ return _numver; }

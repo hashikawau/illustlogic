@@ -1,9 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+
 #include "IllustrationLogicSolver.h"
 
-IllustrationLogicCanvas::IllustrationLogicCanvas()
+IllustrationLogicSolver::IllustrationLogicSolver()
 {
     _numblack =0;
     _blacks   =0;
@@ -15,7 +16,7 @@ IllustrationLogicCanvas::IllustrationLogicCanvas()
     _ischanged =0;
 }
 
-IllustrationLogicCanvas::~IllustrationLogicCanvas()
+IllustrationLogicSolver::~IllustrationLogicSolver()
 {
     delete [] _ischanged;
     delete [] _flagblack;
@@ -36,26 +37,115 @@ IllustrationLogicCanvas::~IllustrationLogicCanvas()
     _numblack =0;
 }
 
-void IllustrationLogicCanvas::resetFlags(bool black, bool white)
+//std::shared_ptr<IllustrationLogicSolver> IllustrationLogicSolver::createFrom(const std::string& inputString)
+void IllustrationLogicSolver::setNumGrid(const std::string& inputString)
 {
-    if(black){
-        for(int i=0; i< _numver *_numhor; ++i){
-            _flagblack[i] =false;
-            //_flagwhite[i] =false;
+    //std::istream& stream = std::cin;
+    //if(!stream){
+    //    _numver =0;
+    //    _numhor =0;
+    //    return;
+    //}
+
+    char str[10];
+    //LinkedList<int> list;
+    std::vector<int> list;
+    int count =0;
+    for (char ch: inputString){
+        if(ch == '\n'){
+            if(count){
+                str[count] = '\0';
+                list.push_back(std::stoi(str));
+            }
+            list.push_back(0);
+            count =0;
+        }else
+        if(ch == ' '){
+            str[count] = '\0';
+            list.push_back(std::stoi(str));
+            count =0;
+        }else{
+            str[count] = ch;
+            ++count;
         }
     }
-    if(white){
-        for(int i=0; i< _numver *_numhor; ++i){
-            //_flagblack[i] =false;
-            _flagwhite[i] =false;
+    if(count){
+        str[count] = '\0';
+        list.push_back(std::stoi(str));
+    }
+    list.push_back(0);
+
+    //===========================================================
+    int size = list.size();
+    std::vector<int> array = list;
+    int num[] ={0, 0, 0};
+    int index =0;
+    int countzero =0;
+    for(int i=0; i< size; ++i){
+        if(array[i]){
+            if(countzero >1){
+                ++index;
+            }
+            countzero =0;
+            if(!index){
+                array[i] =0;
+            }
+        }else{
+            if(!countzero){
+                ++num[index];
+            }
+            ++countzero;
         }
     }
+
+    _numver = num[1];
+    _numhor = num[2];
+
+    _blacks   = new int* [_numver +_numhor];
+    _numblack = new char [_numver +_numhor];
+
+    int start =0;
+    index =-1;
+    count =0;
+    countzero =0;
+    for(int i=0; i< size; ++i){
+        if(array[i]){
+            if(countzero >0){
+                start =i;
+                ++index;
+            }
+            countzero =0;
+            ++count;
+        }else{
+            if(countzero == 0 && count > 0){
+                _numblack[index] =count;
+                _blacks[index] = new int [count];
+                for(int j= start, k=0; j< i; ++j){
+                    if(array[j]){
+                        _blacks[index][k] = array[j];
+                        ++k;
+                    }
+                }
+            }
+            count =0;
+            ++countzero;
+        }
+    }
+
+    //===========================================================
+    _flagblack = new bool [_numver *_numhor];
+    _flagwhite = new bool [_numver *_numhor];
+    for(int i=0; i< _numver *_numhor; ++i){
+        _flagblack[i] =false;
+        _flagwhite[i] =false;
+    }
+    _ischanged = new bool [_numver +_numhor];
     for(int i=0; i< _numver +_numhor; ++i){
         _ischanged[i] =true;
     }
 }
 
-void IllustrationLogicCanvas::setNumGrid()
+void IllustrationLogicSolver::setNumGrid()
 {
     std::istream& stream = std::cin;
     if(!stream){
@@ -163,7 +253,26 @@ void IllustrationLogicCanvas::setNumGrid()
     }
 }
 
-bool IllustrationLogicCanvas::calculateLine(int indexline)
+void IllustrationLogicSolver::resetFlags(bool black, bool white)
+{
+    if(black){
+        for(int i=0; i< _numver *_numhor; ++i){
+            _flagblack[i] =false;
+            //_flagwhite[i] =false;
+        }
+    }
+    if(white){
+        for(int i=0; i< _numver *_numhor; ++i){
+            //_flagblack[i] =false;
+            _flagwhite[i] =false;
+        }
+    }
+    for(int i=0; i< _numver +_numhor; ++i){
+        _ischanged[i] =true;
+    }
+}
+
+bool IllustrationLogicSolver::calculateLine(int indexline)
 {
     int numline;
     int offset;
@@ -828,14 +937,14 @@ bool IllustrationLogicCanvas::calculateLine(int indexline)
     return false;
 }
 
-void IllustrationLogicCanvas::print()
+void IllustrationLogicSolver::print()
 {
     for (int i = 0; i < _numver; ++i) {
         for (int j = 0; j < _numhor; ++j) {
             if (_flagblack[i * _numhor + j])
-                std::cout << "■";
+                std::cout << " ■";
             else
-                std::cout << "□";
+                std::cout << " □";
         }
         std::cout << std::endl;
     }
