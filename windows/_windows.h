@@ -3,6 +3,7 @@
 #ifndef __Windows_windows
 #define __Windows_windows
 
+#ifndef __GNUC__
 
 #define UNICODE
 #include "windows.h"
@@ -19,4 +20,6 @@ MSG msg;
 #endif
 
 #endif //ifndef __Windows_windows
+
+#endif //ifndef __GNUC__
 
