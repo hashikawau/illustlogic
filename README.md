@@ -1,5 +1,13 @@
 # illustlogic
 
+How to build:
+    cd windows
+    make
+
+Requires:
+    windows libraries
+    digital mars compiler
+
 function:
     solve illust logic puzzle
 
