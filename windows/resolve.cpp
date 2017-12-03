@@ -17,8 +17,8 @@ int main(int argc, char** argv)
     logic->init(inputString.str());
     //auto logic = IllustrationLogicSolver::createFrom(inputString.str());
     for (int k = 0; k < 500; ++k)
-        for (int i = 0; i < logic->getNumVer(); ++i)
-            for (int j = 0; j < logic->getNumHor(); ++j)
+        for (int i = 0; i < logic->getNumRowHints(); ++i)
+            for (int j = 0; j < logic->getNumColHints(); ++j)
                 logic->calculateLine(i + j);
     logic->print();
 

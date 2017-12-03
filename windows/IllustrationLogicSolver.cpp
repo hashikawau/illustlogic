@@ -19,9 +19,6 @@ std::vector<std::string> split(const std::string& input, char delimiter)
 
 IllustrationLogicSolver::IllustrationLogicSolver()
 {
-    _numblack =0;
-    _blacks   =0;
-
     _flagblack =0;
     _flagwhite =0;
     _ischanged =0;
@@ -33,29 +30,16 @@ IllustrationLogicSolver::~IllustrationLogicSolver()
     delete [] _flagblack;
     delete [] _flagwhite;
 
-    if(_blacks){
-        for(int i=0; i< _numver +_numhor; ++i){
-            delete [] _blacks[i];
-        }
-        delete [] _blacks;
-    }
-    delete [] _numblack;
-
     _ischanged =0;
     _flagblack =0;
     _flagwhite =0;
-    _blacks =0;
-    _numblack =0;
 }
 
 //std::shared_ptr<IllustrationLogicSolver> IllustrationLogicSolver::createFrom(const std::string& inputString)
 void IllustrationLogicSolver::init(const std::string& inputString)
 {
-    if (inputString.size() == 0) {
-        _numver =0;
-        _numhor =0;
+    if (inputString.size() == 0)
         return;
-    }
 
     std::vector<std::string> lines = split(inputString, '\n');
     int i;
@@ -65,37 +49,50 @@ void IllustrationLogicSolver::init(const std::string& inputString)
             continue;
 
         std::vector<std::string> words = split(lines[i], ' ');
-        _numver = std::stoi(words[0]);
-        _numhor = std::stoi(words[1]);
-        ++i;
         break;
     }
-    // load black numbers
-    _numblack = new int [_numver + _numhor];
-    _blacks   = new int* [_numver + _numhor];
-    int j = 0;
-    for (; i < lines.size(); ++i) {
+    // load row hints
+    for (i = i + 1; i < lines.size(); ++i) {
         if (lines[i].size() == 0)
             continue;
+        break;
+    }
+    for (; i < lines.size(); ++i) {
+        if (lines[i].size() == 0)
+            break;
 
         std::vector<std::string> words = split(lines[i], ' ');
-        _numblack[j] = words.size();
-        _blacks[j] = new int [words.size()];
-        for (int k = 0; k < words.size(); ++k) {
-            _blacks[j][k] = std::stoi(words[k]);
-        }
-        ++j;
+        std::vector<int> hints;
+        for (std::string word: words)
+            hints.push_back(std::stoi(word));
+        _rowHints.push_back(hints);
+    }
+    // load column hints
+    for (i = i + 1; i < lines.size(); ++i) {
+        if (lines[i].size() == 0)
+            continue;
+        break;
+    }
+    for (; i < lines.size(); ++i) {
+        if (lines[i].size() == 0)
+            break;
+
+        std::vector<std::string> words = split(lines[i], ' ');
+        std::vector<int> hints;
+        for (std::string word: words)
+            hints.push_back(std::stoi(word));
+        _colHints.push_back(hints);
     }
 
     // init
-    _flagblack = new bool [_numver * _numhor];
-    _flagwhite = new bool [_numver * _numhor];
-    for (int i = 0; i < _numver * _numhor; ++i) {
+    _flagblack = new bool [getNumRowHints() * getNumColHints()];
+    _flagwhite = new bool [getNumRowHints() * getNumColHints()];
+    for (int i = 0; i < getNumRowHints() * getNumColHints(); ++i) {
         _flagblack[i] = false;
         _flagwhite[i] = false;
     }
-    _ischanged = new bool [_numver + _numhor];
-    for (int i = 0; i < _numver + _numhor; ++i) {
+    _ischanged = new bool [getNumRowHints() + getNumColHints()];
+    for (int i = 0; i < getNumRowHints() + getNumColHints(); ++i) {
         _ischanged[i] = true;
     }
 }
@@ -103,18 +100,18 @@ void IllustrationLogicSolver::init(const std::string& inputString)
 void IllustrationLogicSolver::resetFlags(bool black, bool white)
 {
     if(black){
-        for(int i=0; i< _numver *_numhor; ++i){
+        for(int i=0; i< getNumRowHints() *getNumColHints(); ++i){
             _flagblack[i] =false;
             //_flagwhite[i] =false;
         }
     }
     if(white){
-        for(int i=0; i< _numver *_numhor; ++i){
+        for(int i=0; i< getNumRowHints() *getNumColHints(); ++i){
             //_flagblack[i] =false;
             _flagwhite[i] =false;
         }
     }
-    for(int i=0; i< _numver +_numhor; ++i){
+    for(int i=0; i< getNumRowHints() +getNumColHints(); ++i){
         _ischanged[i] =true;
     }
 }
@@ -124,15 +121,15 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
     int numline;
     int offset;
     int step;
-    if(indexline < _numver){
-        numline = _numhor;
-        offset  = indexline *_numhor;
+    if(indexline < getNumRowHints()){
+        numline = getNumColHints();
+        offset  = indexline *getNumColHints();
         step    = 1;
     }else
-    if(indexline < _numver +_numhor){
-        numline = _numver;
-        offset  = indexline -_numver;
-        step    = _numhor;
+    if(indexline < getNumRowHints() +getNumColHints()){
+        numline = getNumRowHints();
+        offset  = indexline -getNumRowHints();
+        step    = getNumColHints();
     }else{
         throw std::string("error at line ")
             +std::to_string(indexline)
@@ -156,10 +153,10 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
     }
 
     //==================================================================
-    int numblack = _numblack[indexline];
+    int numblack = getBlack(indexline).getNumHints();
     int blacks[numblack];
     for(int i=0; i< numblack; ++i){
-        blacks[i] = _blacks[indexline][i];
+        blacks[i] = getBlack(indexline).getHint(i);
     }
 
     //==================================================================
@@ -762,8 +759,8 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
     }//while
 
     //==================================================================
-    int offset2 = indexline < _numver?
-        _numver:
+    int offset2 = indexline < getNumRowHints()?
+        getNumRowHints():
         0;
     for(int j=0; j< numline; ++j){
         /*if(!_flagblack[offset +step *j] & !_flagwhite[offset +step *j]){
@@ -786,9 +783,9 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
 
 void IllustrationLogicSolver::print()
 {
-    for (int i = 0; i < _numver; ++i) {
-        for (int j = 0; j < _numhor; ++j) {
-            if (_flagblack[i * _numhor + j])
+    for (int i = 0; i < getNumRowHints(); ++i) {
+        for (int j = 0; j < getNumColHints(); ++j) {
+            if (_flagblack[i * getNumColHints() + j])
                 std::cout << " ■";
             else
                 std::cout << " □";

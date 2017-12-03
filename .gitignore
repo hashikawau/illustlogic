@@ -1,5 +1,6 @@
 
 *.exe
+*.exe.stackdump
 *.map
 *.obj
 
