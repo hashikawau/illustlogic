@@ -94,6 +94,34 @@ void IllustrationLogicSolver::init(const std::string& inputString)
     _ischanged.resize(getNumRowHints() + getNumColHints(), true);
 }
 
+void IllustrationLogicSolver::print()
+{
+    for (int i = 0; i < getNumRowHints(); ++i) {
+        for (int j = 0; j < getNumColHints(); ++j) {
+            if (_flagblack[i * getNumColHints() + j] || !_flagwhite[i * getNumColHints() + j])
+                std::cout << " ■";
+            else
+            if (!_flagblack[i * getNumColHints() + j] || _flagwhite[i * getNumColHints() + j])
+                std::cout << " □";
+            else
+                std::cout << " ？";
+        }
+        std::cout << std::endl;
+    }
+    //for (LineHint line: _rowHints) {
+    //    for (Status status: line.getCellStatus()) {
+    //        if (status == Status::BLACK)
+    //            std::cout << " ■";
+    //        else
+    //        if (status == Status::WHITE)
+    //            std::cout << " □";
+    //        else
+    //            std::cout << " ？";
+    //    }
+    //    std::cout << std::endl;
+    //}
+}
+
 void IllustrationLogicSolver::resetFlags(bool black, bool white)
 {
     if(black){
@@ -155,57 +183,10 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
     }
 
     //==================================================================
-{//
-    /*//bool isblack =false;
-    int countblack =0;
-    int countstring =0;
-    for(int j=0; j< numline; ++j){
-        if(flagblack[j]){
-            ++countstring;
-        }else{
-            if(countstring >0){
-                if(countblack < numblack){
-                    if(countstring == blacks[countblack]){
-                        ++countblack;
-                    }else{
-                        countstring =-1;
-                        break;
-                    }
-                }else{
-                    countstring =-1;
-                    break;
-                }
-            }
-            countstring =0;
-        }
-    }
-    if(countstring >0){
-        if(countblack < numblack){
-            if(countstring == blacks[countblack]){
-                ++countblack;
-                countstring =0;
-            }else{
-                countstring =-1;
-            }
-        }else{
-            countstring =-1;
-        }
-    }
-    if(countblack == numblack && countstring ==0){
-        return true;
-    }
-    if(!_ischanged[indexline]){
-        return false;
-    }*/
-}//
-
-    //==================================================================
     bool blackhead[numblack][numline];
     for(int i=0; i< numblack; ++i){
-        bool doexist =true;
         for(int j=0; j< numline; ++j){
             blackhead[i][j] = true;
-            doexist &= blackhead[i][j];
         }
     }
 
@@ -213,10 +194,7 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
     bool prevflagblack[numline];
     bool prevflagwhite[numline];
     bool prevblackhead[numblack][numline];
-    //ismuch =true;
     for(int j=0; j< numline; ++j){
-        //ismuch &= prevflagblack[j] == flagblack[j];
-        //ismuch &= prevflagwhite[j] == flagwhite[j];
         prevflagblack[j] = flagblack[j];
         prevflagwhite[j] = flagwhite[j];
         for(int i=0; i< numblack; ++i){
@@ -230,47 +208,31 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
 
         //chamber
         //==================================================================
-        int numchamber =0;
-{//numchamber
-        bool iswhite =true;
-        for(int j=0; j< numline; ++j){
-            if(flagwhite[j]){
-                iswhite =true;
-            }else{
-                if(iswhite){
-                    ++numchamber;
-                    //++countchamber;
-                    //chamberhead[countchamber] = j;
-                }
-                iswhite =false;
-                //++sizechamber[countchamber];
-            }
-        }
-}//numchamber
+        int numchamber = calcNumChanbers(numline, flagwhite);
 
         //==================================================================
         int chamberhead[numchamber];
         int sizechamber[numchamber];
-{//chamberhead, sizechamber
-        for(int i=0; i< numchamber; ++i){
-            sizechamber[i] =0;
-        }
-        bool iswhite =true;
-        int countchamber =-1;
-        for(int j=0; j< numline; ++j){
-            if(flagwhite[j]){
-                iswhite =true;
-            }else{
-                if(iswhite){
-                    //++numchamber;
-                    ++countchamber;
-                    chamberhead[countchamber] = j;
-                }
-                iswhite =false;
-                ++sizechamber[countchamber];
+        {//chamberhead, sizechamber
+            for(int i=0; i< numchamber; ++i){
+                sizechamber[i] =0;
             }
-        }
-}//chamberhead, sizechamber
+            bool iswhite =true;
+            int countchamber =-1;
+            for(int j=0; j< numline; ++j){
+                if(flagwhite[j]){
+                    iswhite =true;
+                }else{
+                    if(iswhite){
+                        //++numchamber;
+                        ++countchamber;
+                        chamberhead[countchamber] = j;
+                    }
+                    iswhite =false;
+                    ++sizechamber[countchamber];
+                }
+            }
+        }//chamberhead, sizechamber
 
         //==================================================================
         for(int j=0; j< numline; ++j){
@@ -311,158 +273,158 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
         }
 
         //==================================================================
-{//
-        int offsetblack =0;
-        for(int k=0; k< numchamber; ++k){
-            for(int j= chamberhead[k];
-                j< chamberhead[k] +sizechamber[k];
-                ++j)
-            {
-                if(blackhead[offsetblack][j]){
-                    int tail = j +blacks[offsetblack];
-                    if(tail <= chamberhead[k] +sizechamber[k]){
-                        ++offsetblack;
-                        if(offsetblack >= numblack){
-                            break;
-                        }
-                        for(int i= offsetblack; i< numblack; ++i){
-                            for(int j2=0;
-                                j2<= std::min(numline -1, tail);
-                                ++j2)
-                            {
-                                blackhead[i][j2] =false;
+        {//
+            int offsetblack =0;
+            for(int k=0; k< numchamber; ++k){
+                for(int j= chamberhead[k];
+                    j< chamberhead[k] +sizechamber[k];
+                    ++j)
+                {
+                    if(blackhead[offsetblack][j]){
+                        int tail = j +blacks[offsetblack];
+                        if(tail <= chamberhead[k] +sizechamber[k]){
+                            ++offsetblack;
+                            if(offsetblack >= numblack){
+                                break;
                             }
+                            for(int i= offsetblack; i< numblack; ++i){
+                                for(int j2=0;
+                                    j2<= std::min(numline -1, tail);
+                                    ++j2)
+                                {
+                                    blackhead[i][j2] =false;
+                                }
+                            }
+                        }else{
+                            blackhead[offsetblack][j] =false;
                         }
-                    }else{
-                        blackhead[offsetblack][j] =false;
                     }
                 }
-            }
-            if(offsetblack >= numblack){
-                break;
-            }
-        }
-}//
-{//
-        int offsetblack = numblack -1;
-        for(int k= numchamber -1; k>= 0; --k){
-            int indexwall = chamberhead[k] +sizechamber[k];
-            for(int j= indexwall -1;
-                j>= chamberhead[k];
-                --j)
-            {
-                if(blackhead[offsetblack][j]){
-                    int tail = j +blacks[offsetblack];
-                    if(tail <= indexwall){
-                        indexwall = j -1;
-                        --offsetblack;
-                        if(offsetblack <0){
-                            break;
-                        }
-                        for(int i= offsetblack; i>= 0; --i){
-                            for(int j2= std::max(0, j-1);
-                                j2< numline;
-                                ++j2)
-                            {
-                                blackhead[i][j2] =false;
-                            }
-                        }
-                    }else{
-                        blackhead[offsetblack][j] =false;
-                    }
+                if(offsetblack >= numblack){
+                    break;
                 }
             }
-            if(offsetblack <0){
-                break;
+        }//
+        {//
+            int offsetblack = numblack -1;
+            for(int k= numchamber -1; k>= 0; --k){
+                int indexwall = chamberhead[k] +sizechamber[k];
+                for(int j= indexwall -1;
+                    j>= chamberhead[k];
+                    --j)
+                {
+                    if(blackhead[offsetblack][j]){
+                        int tail = j +blacks[offsetblack];
+                        if(tail <= indexwall){
+                            indexwall = j -1;
+                            --offsetblack;
+                            if(offsetblack <0){
+                                break;
+                            }
+                            for(int i= offsetblack; i>= 0; --i){
+                                for(int j2= std::max(0, j-1);
+                                    j2< numline;
+                                    ++j2)
+                                {
+                                    blackhead[i][j2] =false;
+                                }
+                            }
+                        }else{
+                            blackhead[offsetblack][j] =false;
+                        }
+                    }
+                }
+                if(offsetblack <0){
+                    break;
+                }
             }
-        }
-}//
+        }//
 
         //string black
         //==================================================================
         int numstring =0;
-{//numstring
-        bool isblack =false;
-        for(int j=0; j< numline; ++j){
-            if(flagblack[j]){
-                if(!isblack){
-                    ++numstring;
-                    //++countstring;
-                    //stringhead[countstring] = j;
+        {//numstring
+            bool isblack =false;
+            for(int j=0; j< numline; ++j){
+                if(flagblack[j]){
+                    if(!isblack){
+                        ++numstring;
+                        //++countstring;
+                        //stringhead[countstring] = j;
+                    }
+                    isblack =true;
+                    //++sizestring[countstring];
+                }else{
+                    isblack =false;
                 }
-                isblack =true;
-                //++sizestring[countstring];
-            }else{
-                isblack =false;
             }
-        }
-}//numstring
+        }//numstring
 
         //==================================================================
         int stringhead[numstring];
         int sizestring[numstring];
-{//stringhead, sizestring
-        for(int i=0; i< numstring; ++i){
-            sizestring[i] =0;
-        }
-        bool isblack =false;
-        int countstring =-1;
-        for(int j=0; j< numline; ++j){
-            if(flagblack[j]){
-                if(!isblack){
-                    //++numstring;
-                    ++countstring;
-                    stringhead[countstring] = j;
-                }
-                isblack =true;
-                ++sizestring[countstring];
-            }else{
-                isblack =false;
+        {//stringhead, sizestring
+            for(int i=0; i< numstring; ++i){
+                sizestring[i] =0;
             }
-        }
-}//stringhead, sizestring
+            bool isblack =false;
+            int countstring =-1;
+            for(int j=0; j< numline; ++j){
+                if(flagblack[j]){
+                    if(!isblack){
+                        //++numstring;
+                        ++countstring;
+                        stringhead[countstring] = j;
+                    }
+                    isblack =true;
+                    ++sizestring[countstring];
+                }else{
+                    isblack =false;
+                }
+            }
+        }//stringhead, sizestring
 
         //ispossible
         //==================================================================
         bool ispossible[numstring][numblack];
-{//ispossible
-        //==================================================================
-        bool blackoverlap[numblack][numline];
-        for(int i=0; i< numblack; ++i){
-            for(int j=0; j< numline; ++j){
-                blackoverlap[i][j] = false;
+        {//ispossible
+            //==================================================================
+            bool blackoverlap[numblack][numline];
+            for(int i=0; i< numblack; ++i){
+                for(int j=0; j< numline; ++j){
+                    blackoverlap[i][j] = false;
+                }
             }
-        }
-        for(int i=0; i< numblack; ++i){
-            for(int j=0; j< numline; ++j){
-                if(blackhead[i][j]){
-                    for(int k=0; k< blacks[i]; ++k){
-                        blackoverlap[i][j +k] |= true;
+            for(int i=0; i< numblack; ++i){
+                for(int j=0; j< numline; ++j){
+                    if(blackhead[i][j]){
+                        for(int k=0; k< blacks[i]; ++k){
+                            blackoverlap[i][j +k] |= true;
+                        }
                     }
                 }
             }
-        }
 
-        //==================================================================
-        for(int k=0; k< numstring; ++k){
-            for(int i=0; i< numblack; ++i){
-                ispossible[k][i] =true;
-            }
-        }
-        for(int k=0; k< numstring; ++k){
-            for(int j= stringhead[k];
-                j< stringhead[k] +sizestring[k];
-                ++j)
-            {
+            //==================================================================
+            for(int k=0; k< numstring; ++k){
                 for(int i=0; i< numblack; ++i){
-                    ispossible[k][i] &= blackoverlap[i][j];
+                    ispossible[k][i] =true;
                 }
             }
-            for(int i=0; i< numblack; ++i){
-                ispossible[k][i] &= blacks[i] >= sizestring[k];
+            for(int k=0; k< numstring; ++k){
+                for(int j= stringhead[k];
+                    j< stringhead[k] +sizestring[k];
+                    ++j)
+                {
+                    for(int i=0; i< numblack; ++i){
+                        ispossible[k][i] &= blackoverlap[i][j];
+                    }
+                }
+                for(int i=0; i< numblack; ++i){
+                    ispossible[k][i] &= blacks[i] >= sizestring[k];
+                }
             }
-        }
-}//
+        }//
 
         //==================================================================
         int indexchamberstring[numstring];
@@ -479,64 +441,9 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
         }
 
         //==================================================================
-{//
-        int indexblackdetermined[numstring];
-        for(int k=0; k< numstring; ++k){
-            indexblackdetermined[k] =-1;
-            for(int i=0; i< numblack; ++i){
-                if(ispossible[k][i]){
-                    if(indexblackdetermined[k] ==-1){
-                        indexblackdetermined[k] = i;
-                    }else{
-                        indexblackdetermined[k] =-2;
-                        break;
-                    }
-                }
-            }
-        }
-        int prevcount =0;
-        for(int k=0; k< numstring; ++k){
-            if(indexblackdetermined[k] >=0){
-                ++prevcount;
-            }
-        }
-
-        while(1){
+        {//
+            int indexblackdetermined[numstring];
             for(int k=0; k< numstring; ++k){
-                int index = indexblackdetermined[k];
-                if(index >=0){
-                    for(int i=0; i<= index; ++i){
-                        for(int k2= k+1; k2< numstring; ++k2){
-                            if(indexchamberstring[k]
-                                != indexchamberstring[k2])
-                            {
-                                ispossible[k2][i] =false;
-                            }else{
-                                if(stringhead[k] +blacks[index]
-                                    < stringhead[k2] +sizestring[k2])
-                                {
-                                    ispossible[k2][i] =false;
-                                }
-                            }
-                        }
-                    }
-                    for(int i= index; i< numblack; ++i){
-                        for(int k2=0; k2< k; ++k2){
-                            if(indexchamberstring[k]
-                                != indexchamberstring[k2])
-                            {
-                                ispossible[k2][i] =false;
-                            }else{
-                                if(stringhead[k] +blacks[index]
-                                    < stringhead[k2] +sizestring[k2])
-                                {
-                                    ispossible[k2][i] =false;
-                                }
-                            }
-                        }
-                    }
-                }
-
                 indexblackdetermined[k] =-1;
                 for(int i=0; i< numblack; ++i){
                     if(ispossible[k][i]){
@@ -549,35 +456,71 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
                     }
                 }
             }
-            int count =0;
+            int prevcount =0;
             for(int k=0; k< numstring; ++k){
                 if(indexblackdetermined[k] >=0){
-                    ++count;
+                    ++prevcount;
                 }
             }
-            if(prevcount == count){ break; }
-            prevcount = count;
-        }
 
-        //==================================================================
-        /*for(int k=0; k< numstring; ++k){
-            cout << indexline << ", ";
-            cout << stringhead[k] << " - ";
-            cout << sizestring[k] << ", ";
-            cout << "[ ";
-            for(int i=0; i< numblack; ++i){
-                cout << blacks[i] << " ";
+            while(1){
+                for(int k=0; k< numstring; ++k){
+                    int index = indexblackdetermined[k];
+                    if(index >=0){
+                        for(int i=0; i<= index; ++i){
+                            for(int k2= k+1; k2< numstring; ++k2){
+                                if(indexchamberstring[k]
+                                    != indexchamberstring[k2])
+                                {
+                                    ispossible[k2][i] =false;
+                                }else{
+                                    if(stringhead[k] +blacks[index]
+                                        < stringhead[k2] +sizestring[k2])
+                                    {
+                                        ispossible[k2][i] =false;
+                                    }
+                                }
+                            }
+                        }
+                        for(int i= index; i< numblack; ++i){
+                            for(int k2=0; k2< k; ++k2){
+                                if(indexchamberstring[k]
+                                    != indexchamberstring[k2])
+                                {
+                                    ispossible[k2][i] =false;
+                                }else{
+                                    if(stringhead[k] +blacks[index]
+                                        < stringhead[k2] +sizestring[k2])
+                                    {
+                                        ispossible[k2][i] =false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    indexblackdetermined[k] =-1;
+                    for(int i=0; i< numblack; ++i){
+                        if(ispossible[k][i]){
+                            if(indexblackdetermined[k] ==-1){
+                                indexblackdetermined[k] = i;
+                            }else{
+                                indexblackdetermined[k] =-2;
+                                break;
+                            }
+                        }
+                    }
+                }
+                int count =0;
+                for(int k=0; k< numstring; ++k){
+                    if(indexblackdetermined[k] >=0){
+                        ++count;
+                    }
+                }
+                if(prevcount == count){ break; }
+                prevcount = count;
             }
-            cout << "], ";
-            cout << "chamber - " << indexchamberstring[k];
-            cout << " ==> ";
-            for(int i=0; i< numblack; ++i){
-                cout << ispossible[k][i] << " ";
-            }
-            cout << endl;
-        }*/
-        //==================================================================
-}//
+        }//
 
         //==================================================================
         for(int k=0; k< numstring; ++k){
@@ -605,141 +548,120 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
         }
 
         //==================================================================
-{//painting in black string
-        bool blackoverlap[numline];
-        bool whiteoverlap[numline];
-        bool blackoverlapsolo[numline];
-        bool whiteoverlapsolo[numline];
-        for(int i=0; i< numline; ++i){
-            blackoverlap[i] =false;
-            //whiteoverlap[i] =true;
-            whiteoverlap[i] =false;
-        }
-        for(int k=0; k< numstring; ++k){
-            bool blackoverlapstring[numline];
-            bool whiteoverlapstring[numline];
-            for(int j=0; j< numline; ++j){
-                blackoverlapstring[j] =true;
-                whiteoverlapstring[j] =true;
+        {//painting in black string
+            bool blackoverlap[numline];
+            bool whiteoverlap[numline];
+            bool blackoverlapsolo[numline];
+            bool whiteoverlapsolo[numline];
+            for(int i=0; i< numline; ++i){
+                blackoverlap[i] =false;
+                //whiteoverlap[i] =true;
+                whiteoverlap[i] =false;
             }
-            for(int i=0; i< numblack; ++i){
-                if(ispossible[k][i]){
-                    for(int j=0; j< numline; ++j){
-                        blackoverlapsolo[j] =true;
-                        whiteoverlapsolo[j] =true;
-                    }
-                    for(int j= std::max(
-                            0,
-                            stringhead[k] +sizestring[k] -blacks[i]);
-                        j<= stringhead[k];
-                        ++j)
-                    {
-                        if(blackhead[i][j]){
-                            for(int j2= 0; j2< j; ++j2){
-                                blackoverlapsolo[j2] =false;
-                            }
-                            for(int j2= j +blacks[i]; j2< numline; ++j2){
-                                blackoverlapsolo[j2] =false;
-                            }
-                            for(int j2= 0; j2< j -1; ++j2){
-                                whiteoverlapsolo[j2] =false;
-                            }
-                            for(int j2= j; j2< j +blacks[i]; ++j2){
-                                whiteoverlapsolo[j2] =false;
-                            }
-                            for(int j2= j +blacks[i] +1; j2< numline; ++j2){
-                                whiteoverlapsolo[j2] =false;
+            for(int k=0; k< numstring; ++k){
+                bool blackoverlapstring[numline];
+                bool whiteoverlapstring[numline];
+                for(int j=0; j< numline; ++j){
+                    blackoverlapstring[j] =true;
+                    whiteoverlapstring[j] =true;
+                }
+                for(int i=0; i< numblack; ++i){
+                    if(ispossible[k][i]){
+                        for(int j=0; j< numline; ++j){
+                            blackoverlapsolo[j] =true;
+                            whiteoverlapsolo[j] =true;
+                        }
+                        for(int j= std::max(
+                                0,
+                                stringhead[k] +sizestring[k] -blacks[i]);
+                            j<= stringhead[k];
+                            ++j)
+                        {
+                            if(blackhead[i][j]){
+                                for(int j2= 0; j2< j; ++j2){
+                                    blackoverlapsolo[j2] =false;
+                                }
+                                for(int j2= j +blacks[i]; j2< numline; ++j2){
+                                    blackoverlapsolo[j2] =false;
+                                }
+                                for(int j2= 0; j2< j -1; ++j2){
+                                    whiteoverlapsolo[j2] =false;
+                                }
+                                for(int j2= j; j2< j +blacks[i]; ++j2){
+                                    whiteoverlapsolo[j2] =false;
+                                }
+                                for(int j2= j +blacks[i] +1; j2< numline; ++j2){
+                                    whiteoverlapsolo[j2] =false;
+                                }
                             }
                         }
-                    }
-                    for(int j=0; j< numline; ++j){
-                        blackoverlapstring[j] &= blackoverlapsolo[j];
-                        whiteoverlapstring[j] &= whiteoverlapsolo[j];
-                    }
-                }else{
+                        for(int j=0; j< numline; ++j){
+                            blackoverlapstring[j] &= blackoverlapsolo[j];
+                            whiteoverlapstring[j] &= whiteoverlapsolo[j];
+                        }
+                    }else{
 
+                    }
+                }
+
+                for(int j=0; j< numline; ++j){
+                    blackoverlap[j] |= blackoverlapstring[j];
+                    whiteoverlap[j] |= whiteoverlapstring[j];
                 }
             }
-
             for(int j=0; j< numline; ++j){
-                blackoverlap[j] |= blackoverlapstring[j];
-                whiteoverlap[j] |= whiteoverlapstring[j];
+                flagblack[j] |= blackoverlap[j];
+                flagwhite[j] |= whiteoverlap[j];
             }
-        }
-        for(int j=0; j< numline; ++j){
-            flagblack[j] |= blackoverlap[j];
-            flagwhite[j] |= whiteoverlap[j];
-        }
 
-        /*for(int i=0; i< numline; ++i){
-            if(flagblack[i] & flagwhite[i]){
-                throw String("error at line ")
-                    +String(indexline)
-                    +String(" - painting in black string");
-            }
-        }*/
-}//painting in black string
+        }//painting in black string
 
     //==================================================================
-{//painting
-        bool blackoverlap[numline];
-        bool whiteoverlap[numline];
-        bool blackoverlapsolo[numline];
-        for(int i=0; i< numline; ++i){
-            blackoverlap[i] =false;
-            whiteoverlap[i] =true;
-        }
-        for(int i=0; i< numblack; ++i){
-            for(int j=0; j< numline; ++j){
-                blackoverlapsolo[j] =true;
+        {//painting
+            bool blackoverlap[numline];
+            bool whiteoverlap[numline];
+            bool blackoverlapsolo[numline];
+            for(int i=0; i< numline; ++i){
+                blackoverlap[i] =false;
+                whiteoverlap[i] =true;
             }
-            for(int j=0; j< numline; ++j){
-                if(blackhead[i][j]){
-                    for(int k=0; k< j; ++k){
-                        blackoverlapsolo[k] =false;
+            for(int i=0; i< numblack; ++i){
+                for(int j=0; j< numline; ++j){
+                    blackoverlapsolo[j] =true;
+                }
+                for(int j=0; j< numline; ++j){
+                    if(blackhead[i][j]){
+                        for(int k=0; k< j; ++k){
+                            blackoverlapsolo[k] =false;
+                        }
+                        for(int k= j; k< j +blacks[i]; ++k){
+                            whiteoverlap[k] =false;
+                        }
+                        for(int k= j +blacks[i]; k< numline; ++k){
+                            blackoverlapsolo[k] =false;
+                        }
                     }
-                    for(int k= j; k< j +blacks[i]; ++k){
-                        whiteoverlap[k] =false;
-                    }
-                    for(int k= j +blacks[i]; k< numline; ++k){
-                        blackoverlapsolo[k] =false;
-                    }
+                }
+                for(int j=0; j< numline; ++j){
+                    blackoverlap[j] |= blackoverlapsolo[j];
                 }
             }
             for(int j=0; j< numline; ++j){
-                blackoverlap[j] |= blackoverlapsolo[j];
+                flagblack[j] |= blackoverlap[j];
+                flagwhite[j] |= whiteoverlap[j];
             }
-        }
-        for(int j=0; j< numline; ++j){
-            flagblack[j] |= blackoverlap[j];
-            flagwhite[j] |= whiteoverlap[j];
-        }
 
-        for(int i=0; i< numline; ++i){
-            if(flagblack[i] & flagwhite[i]){
-                throw std::string("error at line ")
-                    +std::to_string(indexline)
-                    +std::string(" - painting");
-            }
-        }
-}//painting
-
-        //==================================================================
-        /*for(int i=0; i< numblack; ++i){
-            cout << indexline << ", " << blacks[i] << "==> ";
-            for(int j=0; j< numline; ++j){
-                cout << blackhead[i][j];
-                if(!((j+1)%5)){
-                    cout << " ";
+            for(int i=0; i< numline; ++i){
+                if(flagblack[i] & flagwhite[i]){
+                    throw std::string("error at line ")
+                        +std::to_string(indexline)
+                        +std::string(" - painting");
                 }
             }
-            cout << endl;
-        }
-        cout << endl;*/
-        //==================================================================
+        }//painting
 
         //==================================================================
-        ismuch =true;
+        ismuch = true;
         for(int j=0; j< numline; ++j){
             ismuch &= prevflagblack[j] == flagblack[j];
             ismuch &= prevflagwhite[j] == flagwhite[j];
@@ -758,11 +680,6 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
         getNumRowHints():
         0;
     for(int j=0; j< numline; ++j){
-        /*if(!_flagblack[offset +step *j] & !_flagwhite[offset +step *j]){
-            if(flagblack[j] | flagwhite[j]){
-                _ischanged[offset2 +j] =true;
-            }
-        }*/
         if(_flagblack[offset +step *j] != flagblack[j]
             || _flagwhite[offset +step *j] != flagwhite[j]){
             _ischanged[offset2 +j] =true;
@@ -776,27 +693,23 @@ bool IllustrationLogicSolver::calculateLine(int indexline)
     return false;
 }
 
-void IllustrationLogicSolver::print()
+bool IllustrationLogicSolver::algorithm_01(bool* flagblack, bool* flagwhite)
 {
-    for (int i = 0; i < getNumRowHints(); ++i) {
-        for (int j = 0; j < getNumColHints(); ++j) {
-            if (_flagblack[i * getNumColHints() + j])
-                std::cout << " ■";
-            else
-                std::cout << " □";
+}
+
+int IllustrationLogicSolver::calcNumChanbers(int numline, bool* flagwhite)
+{
+    int numchamber = 0;
+    bool iswhite =true;
+    for(int j=0; j< numline; ++j){
+        if(flagwhite[j]){
+            iswhite =true;
+        }else{
+            if(iswhite){
+                ++numchamber;
+            }
+            iswhite =false;
         }
-        std::cout << std::endl;
     }
-    //for (LineHint line: _rowHints) {
-    //    for (Status status: line.getCellStatus()) {
-    //        if (status == Status::BLACK)
-    //            std::cout << " ■";
-    //        else
-    //        if (status == Status::WHITE)
-    //            std::cout << " □";
-    //        else
-    //            std::cout << " ？";
-    //    }
-    //    std::cout << std::endl;
-    //}
+    return numchamber;
 }

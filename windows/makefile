@@ -27,4 +27,6 @@ clean:
 resolve: resolve.cpp IllustrationLogicSolver.cpp IllustrationLogicSolver.h
 	g++ -std=c++14 -o resolve resolve.cpp IllustrationLogicSolver.cpp
 
+test: test.cpp IllustrationLogicSolver.cpp IllustrationLogicSolver.h
+	g++ -std=c++14 -o test test.cpp IllustrationLogicSolver.cpp
 

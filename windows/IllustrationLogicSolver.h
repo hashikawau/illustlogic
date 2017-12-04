@@ -69,6 +69,8 @@ public:
 
     //static std::shared_ptr<IllustrationLogicSolver> createFrom(const std::string& inputString);
     void init(const std::string& inputString);
+    void print();
+
     void resetFlags(bool black, bool white);
     int getNumRowHints() { return _rowHints.size(); }
     int getNumColHints() { return _colHints.size(); }
@@ -80,5 +82,6 @@ public:
             return _colHints[index - _rowHints.size()];
     }
     bool calculateLine(int indexline);
-    void print();
+    bool algorithm_01(bool* flagblack, bool* flagwhite);
+    int calcNumChanbers(int numline, bool* flagwhite);
 };
