@@ -17,24 +17,6 @@ std::vector<std::string> split(const std::string& input, char delimiter)
     return result;
 }
 
-IllustrationLogicSolver::IllustrationLogicSolver()
-{
-    _flagblack =0;
-    _flagwhite =0;
-    _ischanged =0;
-}
-
-IllustrationLogicSolver::~IllustrationLogicSolver()
-{
-    delete [] _ischanged;
-    delete [] _flagblack;
-    delete [] _flagwhite;
-
-    _ischanged =0;
-    _flagblack =0;
-    _flagwhite =0;
-}
-
 //std::shared_ptr<IllustrationLogicSolver> IllustrationLogicSolver::createFrom(const std::string& inputString)
 void IllustrationLogicSolver::init(const std::string& inputString)
 {
@@ -43,58 +25,73 @@ void IllustrationLogicSolver::init(const std::string& inputString)
 
     std::vector<std::string> lines = split(inputString, '\n');
     int i;
+    std::vector<std::string> rows;
+    std::vector<std::string> cols;
     // load row size, column size
     for (i = 0; i < lines.size(); ++i) {
         if (lines[i].size() == 0)
             continue;
 
-        std::vector<std::string> words = split(lines[i], ' ');
         break;
     }
     // load row hints
     for (i = i + 1; i < lines.size(); ++i) {
+        // skip empty line
         if (lines[i].size() == 0)
             continue;
         break;
     }
     for (; i < lines.size(); ++i) {
+        // stop loading when find empty line
         if (lines[i].size() == 0)
             break;
-
-        std::vector<std::string> words = split(lines[i], ' ');
-        std::vector<int> hints;
-        for (std::string word: words)
-            hints.push_back(std::stoi(word));
-        _rowHints.push_back(hints);
+        rows.push_back(lines[i]);
+        //std::vector<std::string> words = split(lines[i], ' ');
+        //std::vector<int> hints;
+        //for (std::string word: words)
+        //    hints.push_back(std::stoi(word));
+        //_rowHints.push_back(hints);
     }
     // load column hints
     for (i = i + 1; i < lines.size(); ++i) {
+        // skip empty line
         if (lines[i].size() == 0)
             continue;
         break;
     }
     for (; i < lines.size(); ++i) {
+        // stop loading when find empty line
         if (lines[i].size() == 0)
             break;
+        cols.push_back(lines[i]);
+        //std::vector<std::string> words = split(lines[i], ' ');
+        //std::vector<int> hints;
+        //for (std::string word: words)
+        //    hints.push_back(std::stoi(word));
+        //_colHints.push_back(hints);
+    }
 
-        std::vector<std::string> words = split(lines[i], ' ');
+    // 
+    for (std::string line: rows) {
+        std::vector<std::string> words = split(line, ' ');
+        std::vector<int> hints;
+        for (std::string word: words) {
+            hints.push_back(std::stoi(word));
+        }
+        _rowHints.push_back(LineHint(hints, cols.size()));
+    }
+    for (std::string line: cols) {
+        std::vector<std::string> words = split(line, ' ');
         std::vector<int> hints;
         for (std::string word: words)
             hints.push_back(std::stoi(word));
-        _colHints.push_back(hints);
+        _colHints.push_back(LineHint(hints, rows.size()));
     }
 
     // init
-    _flagblack = new bool [getNumRowHints() * getNumColHints()];
-    _flagwhite = new bool [getNumRowHints() * getNumColHints()];
-    for (int i = 0; i < getNumRowHints() * getNumColHints(); ++i) {
-        _flagblack[i] = false;
-        _flagwhite[i] = false;
-    }
-    _ischanged = new bool [getNumRowHints() + getNumColHints()];
-    for (int i = 0; i < getNumRowHints() + getNumColHints(); ++i) {
-        _ischanged[i] = true;
-    }
+    _flagblack.resize(getNumRowHints() * getNumColHints(), false);
+    _flagwhite.resize(getNumRowHints() * getNumColHints(), false);
+    _ischanged.resize(getNumRowHints() + getNumColHints(), true);
 }
 
 void IllustrationLogicSolver::resetFlags(bool black, bool white)
@@ -102,12 +99,10 @@ void IllustrationLogicSolver::resetFlags(bool black, bool white)
     if(black){
         for(int i=0; i< getNumRowHints() *getNumColHints(); ++i){
             _flagblack[i] =false;
-            //_flagwhite[i] =false;
         }
     }
     if(white){
         for(int i=0; i< getNumRowHints() *getNumColHints(); ++i){
-            //_flagblack[i] =false;
             _flagwhite[i] =false;
         }
     }
@@ -792,4 +787,16 @@ void IllustrationLogicSolver::print()
         }
         std::cout << std::endl;
     }
+    //for (LineHint line: _rowHints) {
+    //    for (Status status: line.getCellStatus()) {
+    //        if (status == Status::BLACK)
+    //            std::cout << " ■";
+    //        else
+    //        if (status == Status::WHITE)
+    //            std::cout << " □";
+    //        else
+    //            std::cout << " ？";
+    //    }
+    //    std::cout << std::endl;
+    //}
 }
