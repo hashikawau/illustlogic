@@ -3,8 +3,10 @@
 #include "Solver.h"
 
 #include <iostream>
-#include <vector>
+
 #include <fstream>
+#include <cstring>
+#include <vector>
 using namespace std;
 
 vector<string> splitString(
@@ -60,7 +62,7 @@ void Solver::readSize(ifstream& istream)
     char line[256];
     if (!istream.getline(line, 255))
         throw "file not read";
-    cout << "line=" << line << endl;
+    //cout << "line=" << line << endl;
 
     vector<string> split = remove_empty_string(
         splitString(line, " "));
@@ -70,39 +72,27 @@ void Solver::readSize(ifstream& istream)
     _numCols = stoi(split[1]);
 }
 
-vector<int> read(ifstream& istream)
+void Solver::readHints(ifstream& istream)
 {
-    char ch;
-    char str[10];
-    //LinkedList<int> list;
-    vector<int> list;
-    int count =0;
-    while(istream.get(ch)){
-        if(ch == '\n'){
-            if(count){
-                str[count] = '\0';
-                list.push_back(stoi(str));
-            }
-            list.push_back(0);
-            count =0;
-        }else
-        if(ch == ' '){
-            str[count] = '\0';
-            list.push_back(stoi(str));
-            count =0;
-        }else{
-            str[count] = ch;
-            ++count;
-        }
-    }
+    char line[256];
+    while (istream.getline(line, 255)) {
+        if (strlen(line) == 0)
+            continue;
 
-    if(count){
-        str[count] = '\0';
-        list.push_back(stoi(str));
-    }
-    list.push_back(0);
+        cout << "line=" << line << endl;
 
-    return list;
+        vector<string> split = remove_empty_string(
+            splitString(line, " "));
+
+        for (auto s : split)
+            cout << "s=" << s << endl;
+        cout << endl;
+
+        vector<int> hintLine;
+        for (string str : split)
+            hintLine.push_back(stoi(str));
+        _hints.push_back(hintLine);
+    }
 }
 
 void Solver::open(const string& fileName)
@@ -124,58 +114,11 @@ void Solver::open(const string& fileName)
     if (!istream)
         throw "file not found: path=" + fileName;
     readSize(istream);
-    vector<int> list = read(istream);
+    readHints(istream);
     istream.close();
 
     printf("rows=%d, cols=%d\n", _numRows, _numCols);
-
-    list.insert(list.begin() + 0, _numRows);
-    list.insert(list.begin() + 1, _numCols);
-    list.insert(list.begin() + 2, 0);
-
-    //for(auto n: list)
-    //    cout << n << endl;
-
-    int size = list.size();
-    int *array = &list[0];
-
-    _blacks   = new int* [_numRows +_numCols];
-    _numblack = new char [_numRows +_numCols];
-
-    int start =0;
-    int index =-1;
-    int count =0;
-    int countzero =0;
-    for(int i=0; i< size; ++i){
-        if(array[i]){
-            if(countzero >0){
-                start =i;
-                ++index;
-            }
-            countzero =0;
-            ++count;
-        }else{
-            if(countzero == 0){
-                _numblack[index] =count;
-                _blacks[index] = new int [count];
-                for(int j= start, k=0; j< i; ++j){
-                    if(array[j]){
-                        _blacks[index][k] = array[j];
-                        ++k;
-                    }
-                }
-            }
-            count =0;
-            ++countzero;
-        }
-    }
-
-    for (int i = 0; i < _numRows +_numCols; ++i) {
-        for (int j = 0; j < _numblack[i]; ++j) {
-            printf("%d ", _blacks[i][j]);
-        }
-        printf("\n");
-    }
+    printHints();
 
     _grid = new bool [_numRows *_numCols];
     _flag = new bool [_numRows *_numCols];

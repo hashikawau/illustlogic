@@ -1,5 +1,6 @@
 
 #include <string>
+#include <vector>
 using namespace std;
 
 class Solver
@@ -14,6 +15,7 @@ private:
 
     int _numRows;
     int _numCols;
+    vector<vector<int>> _hints;
 
     int _numcalclation;
     char* _numblack;
@@ -23,6 +25,23 @@ private:
     bool* _flag;
 
     void readSize(ifstream& istream);
+    void readHints(ifstream& istream);
+    void printHints() {
+        for (vector<int>& lineHint: _hints) {
+            for (int hint: lineHint) {
+                printf("%d ", hint);
+            }
+            printf("\n");
+        }
+    }
+    void printBlacks() {
+        for (int i = 0; i < _numRows +_numCols; ++i) {
+            for (int j = 0; j < _numblack[i]; ++j) {
+                printf("%d ", _blacks[i][j]);
+            }
+            printf("\n");
+        }
+    }
 
 public:
     Solver();
