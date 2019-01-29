@@ -13,3 +13,7 @@ illustrationlogic: $(objs)
 %.o: %.cpp %.h
 	g++ -std=c++11 -c -o $@ $<
 
+clean:
+	rm -f *.o
+	rm -f *.exe
+
