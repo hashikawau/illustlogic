@@ -5,7 +5,7 @@ objs = \
 
 all:
 	make illustrationlogic
-	./illustrationlogic
+	./illustrationlogic ../test/input/30x30_03.txt
 
 illustrationlogic: $(objs)
 	g++ -o $@ $(objs)

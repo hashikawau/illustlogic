@@ -33,11 +33,28 @@ vector<string> splitString(
     }
 }
 
+std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+{
+    str.erase(0, str.find_first_not_of(chars));
+    return str;
+}
+
+std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+{
+    str.erase(str.find_last_not_of(chars) + 1);
+    return str;
+}
+
+std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+{
+    return ltrim(rtrim(str, chars), chars);
+}
+
 vector<string> remove_empty_string(const vector<string>& target)
 {
     vector<string> result;
     for (auto s : target)
-        if (s.length() > 0)
+        if (trim(s).length() > 0)
             result.push_back(s);
     return result;
 }
@@ -89,7 +106,8 @@ void Solver::readHints(ifstream& istream)
 {
     char line[256];
     while (istream.getline(line, 255)) {
-        if (strlen(line) == 0)
+        string str = string(line);
+        if (trim(str).length() == 0)
             continue;
 
         vector<string> split = remove_empty_string(

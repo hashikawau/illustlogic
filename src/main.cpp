@@ -5,9 +5,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    //auto fileName = "../test/input/iraroji(15_15)-01.txt";
-    //auto fileName = "../test/input/iraroji(50_60)-01.txt";
-    auto fileName = "../test/input/iraroji(60_90)-01.txt";
+    string fileName = argv[1];
 
     auto solver = Solver();
     try {
