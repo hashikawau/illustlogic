@@ -16,13 +16,19 @@ private:
     int _numRows;
     int _numCols;
     vector<vector<int>> _hints;
+    vector<bool> _grids;
+    vector<bool> _flags;
 
-    int _numcalclation;
-    char* _numblack;
-    int** _blacks;
-    int _gridsize;
-    bool* _grid;
-    bool* _flag;
+    vector<bool> _flagblack;
+    vector<bool> _flagwhite;
+    vector<bool> _ischanged;
+
+    //int _numcalclation;
+    //char* _numblack;
+    //int** _blacks;
+    //int _gridsize;
+    //bool* _grid;
+    //bool* _flag;
 
     void readSize(ifstream& istream);
     void readHints(ifstream& istream);
@@ -34,14 +40,20 @@ private:
             printf("\n");
         }
     }
-    void printBlacks() {
-        for (int i = 0; i < _numRows +_numCols; ++i) {
-            for (int j = 0; j < _numblack[i]; ++j) {
-                printf("%d ", _blacks[i][j]);
+    void printGrids() {
+        for (int i = 0; i < _numRows; ++i) {
+            for (int j = 0; j < _numCols; ++j) {
+                printf("%c",
+                    _flagblack[i * _numCols + j] ? '*' :
+                    _flagwhite[i * _numCols + j] ? '.' :
+                    ' ');
             }
             printf("\n");
         }
     }
+
+    bool calculateLine(int indexLine);
+    void calculateLine2(int indexLine);
 
 public:
     Solver();
