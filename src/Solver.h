@@ -11,8 +11,6 @@ private:
     int _numRows;
     int _numCols;
     vector<vector<int>> _hints;
-    vector<bool> _grids;
-    vector<bool> _flags;
 
     vector<bool> _flagblack;
     vector<bool> _flagwhite;

@@ -1,17 +1,18 @@
 
 objs = \
     main.o \
-    Solver.o
+    Solver.o \
+    string_utils.o
 
 all:
 	make illustrationlogic
-	./illustrationlogic ../test/input/30x30_03.txt
+	./illustrationlogic ../test/input/60x90_01.txt
 
 illustrationlogic: $(objs)
 	g++ -o $@ $(objs)
 
 %.o: %.cpp %.h
-	g++ -std=c++11 -c -o $@ $<
+	g++ -c -o $@ $<
 
 clean:
 	rm -f *.o
