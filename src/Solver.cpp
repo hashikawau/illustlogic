@@ -2,19 +2,24 @@
 #include "Solver.h"
 #include "string_utils.h"
 
-#include <iostream>
 
 #include <fstream>
 #include <cstring>
 #include <vector>
 using namespace std;
 
-Solver::Solver()
+bool LineHint::parse(const string& lineHintStr)
 {
-}
+    vector<string> split = remove_empty_string(
+        splitString(lineHintStr, " "));
 
-Solver::~Solver()
-{
+    if (split.size() == 0)
+        return false;
+
+    for (string digitString : split)
+        _hints.push_back(stoi(digitString));
+
+    return true;
 }
 
 void Solver::open(const string& fileName)
@@ -26,9 +31,6 @@ void Solver::open(const string& fileName)
     readSize(istream);
     readHints(istream);
     istream.close();
-
-    printf("rows=%d, cols=%d\n", _numRows, _numCols);
-    printHints();
 
     for (int i = 0; i < _numRows *_numCols; ++i) {
         _flagblack.push_back(false);
@@ -55,6 +57,7 @@ void Solver::readSize(ifstream& istream)
 void Solver::readHints(ifstream& istream)
 {
     char line[256];
+    int count = 0;
     while (istream.getline(line, 255)) {
         string str = string(line);
         if (trim(str).length() == 0)
@@ -67,20 +70,83 @@ void Solver::readHints(ifstream& istream)
         for (string str : split)
             hintLine.push_back(stoi(str));
         _hints.push_back(hintLine);
+
+        LineHint hint;
+        if (!hint.parse(str))
+            continue;
+        if (count < numRows())
+            _rowHints.push_back(hint);
+        else
+            _colHints.push_back(hint);
+        ++count;
     }
 }
 
 void Solver::solve()
 {
-    int num = 500;
+    vector<int> unfinished;
+    for (int i = 0; i< _numRows + _numCols; ++i)
+        unfinished.push_back(i);
+
+    int num = 100;
     for (int k = 0; k < num; ++k) {
-        for (int i = 0; i< _numRows + _numCols; ++i) {
-            calculateLine(i);
+        vector<int> new_unfinished;
+        for (int i : unfinished)
+            if (!calculateLine(i))
+                new_unfinished.push_back(i);
+        if (new_unfinished.size() == 0) {
+            printf("num=%d\n", k);
+            return;
         }
-        //cout << "------------------------------------------" << endl;
-        //printGrids();
+        unfinished = move(new_unfinished);
+        //for (int i = 0; i< _numRows + _numCols; ++i) {
+        //    calculateLine(i);
+        //}
     }
-    printGrids();
+}
+
+void Solver::printHints(int index)
+{
+    if (index < 0 || index >= numRows() + numCols())
+        throw "index out of range";
+
+    LineHint& lineHint = index < numRows()
+        ? _rowHints[index]
+        : _colHints[index + numRows()];
+
+    for (int hint : lineHint.hints()) {
+        printf("|%d", hint);
+    }
+    printf("|\n");
+}
+
+void Solver::printLine(int index)
+{
+    if (index < 0 || index >= numRows() + numCols())
+        throw "index out of range";
+
+    int rowBegin = 0;
+    int rowEnd = numRows();
+    int colBegin = 0;
+    int colEnd = numCols();
+
+    if (index < numRows()) {
+        rowBegin = index;
+        rowEnd = index + 1;
+    } else {
+        colBegin = index;
+        colEnd = index + 1;
+    }
+
+    for (int i = rowBegin; i < rowEnd; ++i) {
+        for (int j = colBegin; j < colEnd; ++j) {
+            printf("|%c",
+                _flagblack[i * numCols() + j] ? '#' :
+                _flagwhite[i * numCols() + j] ? ' ' :
+                '.');
+        }
+    }
+    printf("|\n");
 }
 
 bool Solver::calculateLine(int indexLine)
@@ -644,5 +710,36 @@ bool Solver::calculateLine(int indexLine)
 
     //==================================================================
     return false;
+}
+
+void Solver::printHints() {
+    for (vector<int>& lineHint: _hints) {
+        for (int hint: lineHint) {
+            printf("%d ", hint);
+        }
+        printf("\n");
+    }
+}
+
+void Solver::printGrids() {
+    for (int j = 0; j < _numCols; ++j) {
+        printf("|%d", j / 10);
+    }
+    printf("|\n");
+
+    for (int j = 0; j < _numCols; ++j) {
+        printf("|%d", j % 10);
+    }
+    printf("|\n");
+
+    for (int i = 0; i < _numRows; ++i) {
+        for (int j = 0; j < _numCols; ++j) {
+            printf("|%c",
+                _flagblack[i * _numCols + j] ? '#' :
+                _flagwhite[i * _numCols + j] ? ' ' :
+                '.');
+        }
+        printf("|%02d|\n", i);
+    }
 }
 

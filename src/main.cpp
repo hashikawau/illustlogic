@@ -12,6 +12,7 @@ int main(int argc, char* argv[])
         cout << fileName << endl;
         solver.open(fileName);
         solver.solve();
+        solver.printGrids();
     } catch (const exception& ex) {
         cerr << ex.what() << endl;
     } catch (const string& ex) {
