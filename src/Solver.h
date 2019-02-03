@@ -29,6 +29,16 @@ enum State
     WHITE,
 };
 
+class Chamber
+{
+private:
+public:
+    int head;
+    int size;
+
+    void init();
+};
+
 class Solver
 {
 private:
@@ -53,6 +63,10 @@ private:
         int offset,
         int step,
         bool flagblack[],
+        bool flagwhite[]
+    );
+    vector<Chamber> createChambers(
+        int numline,
         bool flagwhite[]
     );
 

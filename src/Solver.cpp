@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cstring>
 #include <vector>
+#include <cassert>
 using namespace std;
 
 bool LineHint::parse(const string& lineHintStr)
@@ -232,7 +233,6 @@ bool Solver::calculateLine(
         blacks[i] = _hints[indexLine][i];
     }
 
-    //==================================================================
     bool blackhead[numblack][numline];
     for(int i=0; i< numblack; ++i){
         bool doexist =true;
@@ -242,7 +242,6 @@ bool Solver::calculateLine(
         }
     }
 
-    //==================================================================
     bool prevflagblack[numline];
     bool prevflagwhite[numline];
     bool prevblackhead[numblack][numline];
@@ -255,48 +254,17 @@ bool Solver::calculateLine(
     }
     bool ismuch =false;
 
-    //==================================================================
     while(!ismuch){
 
-        //chamber
-        //==================================================================
-        int numchamber =0;
-{//numchamber
-        bool iswhite =true;
-        for(int j=0; j< numline; ++j){
-            if(flagwhite[j]){
-                iswhite =true;
-            }else{
-                if(iswhite){
-                    ++numchamber;
-                }
-                iswhite =false;
-            }
-        }
-}//numchamber
+        vector<Chamber> chambers = createChambers(numline, flagwhite);
 
-        //==================================================================
+        int numchamber = chambers.size();
         int chamberhead[numchamber];
         int sizechamber[numchamber];
-{//chamberhead, sizechamber
-        for(int i=0; i< numchamber; ++i){
-            sizechamber[i] =0;
+        for (int i = 0; i < numchamber; ++i) {
+            chamberhead[i] = chambers[i].head;
+            sizechamber[i] = chambers[i].size;
         }
-        bool iswhite =true;
-        int countchamber =-1;
-        for(int j=0; j< numline; ++j){
-            if(flagwhite[j]){
-                iswhite =true;
-            }else{
-                if(iswhite){
-                    ++countchamber;
-                    chamberhead[countchamber] = j;
-                }
-                iswhite =false;
-                ++sizechamber[countchamber];
-            }
-        }
-}//chamberhead, sizechamber
 
         //==================================================================
         for(int j=0; j< numline; ++j){
@@ -738,6 +706,31 @@ bool Solver::calculateLine(
 
     //==================================================================
     return false;
+}
+
+vector<Chamber> Solver::createChambers(
+    int numline,
+    bool flagwhite[]
+)
+{
+    vector<Chamber> chambers;
+    bool iswhite =true;
+    for (int i = 0; i < numline; ++i){
+        if(flagwhite[i]){
+            iswhite =true;
+        }else{
+            if(iswhite){
+                Chamber newChamber;
+                newChamber.head = i;
+                newChamber.size = 0;
+                chambers.push_back(newChamber);
+            }
+            iswhite =false;
+            chambers.back().size += 1;
+        }
+    }
+
+    return chambers;
 }
 
 void Solver::printHints() {
