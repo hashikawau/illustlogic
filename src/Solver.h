@@ -39,6 +39,14 @@ public:
     void init();
 };
 
+class Mass
+{
+private:
+public:
+    
+
+};
+
 class Solver
 {
 private:
@@ -46,9 +54,7 @@ private:
 
     int _numRows;
     int _numCols;
-    vector<LineHint> _rowHints;
-    vector<LineHint> _colHints;
-    vector<vector<int>> _hints;
+    vector<LineHint> _lineHints;
 
     vector<bool> _flagblack;
     vector<bool> _flagwhite;
@@ -62,6 +68,7 @@ private:
         int numline,
         int offset,
         int step,
+        int blacks[],
         bool flagblack[],
         bool flagwhite[]
     );
@@ -76,18 +83,16 @@ public:
     void open(const string& fileName);
     int numRows() { return _numRows; }
     int numCols() { return _numCols; }
-    vector<LineHint> rowHints() { return _rowHints; }
-    vector<LineHint> colHints() { return _colHints; }
+    vector<LineHint> lineHints() { return _lineHints; }
+    vector<bool> blacks() { return _flagblack; }
 
     void solve();
-    vector<bool> blacks() { return _flagblack; }
+    bool calculateLine(int index);
 
     void printHints();
     void printGrids();
-
     void printHints(int index);
     void printLine(int index);
-    bool calculateLine(int index);
 
 };
 

@@ -22,12 +22,12 @@ int main(int argc, char* argv[])
         assert(equal(
             expectedRowHints[i].begin(),
             expectedRowHints[i].end(),
-            solver.rowHints()[i].hints().begin()));
+            solver.lineHints()[i].hints().begin()));
     for (int i=0; i < expectedColHints.size(); ++i)
         assert(equal(
             expectedColHints[i].begin(),
             expectedColHints[i].end(),
-            solver.colHints()[i].hints().begin()));
+            solver.lineHints()[i + solver.numRows()].hints().begin()));
 
     solver.solve();
 
