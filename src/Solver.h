@@ -15,6 +15,18 @@ public:
 
     bool parse(const string& lineHintStr);
 
+    bool calculate(
+        int indexLine,
+        bool flagblack[],
+        bool flagwhite[]
+    );
+};
+
+enum State
+{
+    UNKNOWN,
+    BLACK,
+    WHITE,
 };
 
 class Solver
@@ -35,6 +47,15 @@ private:
     void readSize(ifstream& istream);
     void readHints(ifstream& istream);
 
+    bool calculateLine(
+        int indexLine,
+        int numline,
+        int offset,
+        int step,
+        bool flagblack[],
+        bool flagwhite[]
+    );
+
 public:
     Solver() = default;
     ~Solver() = default;
@@ -43,7 +64,6 @@ public:
     int numCols() { return _numCols; }
     vector<LineHint> rowHints() { return _rowHints; }
     vector<LineHint> colHints() { return _colHints; }
-
 
     void solve();
     vector<bool> blacks() { return _flagblack; }

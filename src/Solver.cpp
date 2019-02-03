@@ -149,6 +149,15 @@ void Solver::printLine(int index)
     printf("|\n");
 }
 
+bool LineHint::calculate(
+    int indexLine,
+    bool flagblack[],
+    bool flagwhite[]
+)
+{
+    return false;
+}
+
 bool Solver::calculateLine(int indexLine)
 {
     int numline;
@@ -167,7 +176,6 @@ bool Solver::calculateLine(int indexLine)
         throw "error at line " + to_string(indexLine) + " - initialization";
     }
 
-    //==================================================================
     bool flagblack[numline];
     bool flagwhite[numline];
     bool isfinished =true;
@@ -183,7 +191,41 @@ bool Solver::calculateLine(int indexLine)
         return false;
     }
 
+    bool finished = calculateLine(
+        indexLine,
+        numline,
+        offset,
+        step,
+        flagblack,
+        flagwhite
+    );
+
     //==================================================================
+    int offset2 = indexLine < _numRows
+        ? _numRows
+        : 0;
+    for(int j=0; j< numline; ++j){
+        if(_flagblack[offset +step *j] != flagblack[j]
+            || _flagwhite[offset +step *j] != flagwhite[j]){
+            _ischanged[offset2 +j] =true;
+        }
+        _flagblack[offset +step *j] = flagblack[j];
+        _flagwhite[offset +step *j] = flagwhite[j];
+    }
+    _ischanged[indexLine] =false;
+
+    return finished;
+}
+
+bool Solver::calculateLine(
+    int indexLine,
+    int numline,
+    int offset,
+    int step,
+    bool flagblack[],
+    bool flagwhite[]
+)
+{
     int numblack = _hints[indexLine].size();
     int blacks[numblack];
     for(int i=0; i< numblack; ++i){
@@ -693,20 +735,6 @@ bool Solver::calculateLine(int indexLine)
             }
         }
     }//while
-
-    //==================================================================
-    int offset2 = indexLine < _numRows?
-        _numRows:
-        0;
-    for(int j=0; j< numline; ++j){
-        if(_flagblack[offset +step *j] != flagblack[j]
-            || _flagwhite[offset +step *j] != flagwhite[j]){
-            _ischanged[offset2 +j] =true;
-        }
-        _flagblack[offset +step *j] = flagblack[j];
-        _flagwhite[offset +step *j] = flagwhite[j];
-    }
-    _ischanged[indexLine] =false;
 
     //==================================================================
     return false;
