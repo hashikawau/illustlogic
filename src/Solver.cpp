@@ -258,15 +258,6 @@ bool Solver::calculateLine(
 
         vector<Chamber> chambers = createChambers(numline, flagwhite);
 
-        int numchamber = chambers.size();
-        int chamberhead[numchamber];
-        int sizechamber[numchamber];
-        for (int i = 0; i < numchamber; ++i) {
-            chamberhead[i] = chambers[i].head;
-            sizechamber[i] = chambers[i].size;
-        }
-
-        //==================================================================
         for(int j=0; j< numline; ++j){
             if(flagblack[j]){
                 for(int i=0; i< numblack; ++i){
@@ -285,18 +276,16 @@ bool Solver::calculateLine(
             }
         }
 
-        //==================================================================
-        for(int k=0; k< numchamber; ++k){
-            for(int i=0; i< numblack; ++i){
-                for(int j= chamberhead[k];
-                    j< chamberhead[k] +sizechamber[k];
+        for (auto& chamber : chambers) {
+            for(int i = 0; i < numblack; ++i){
+                for(int j = chamber.head;
+                    j < chamber.head + chamber.size;
                     ++j)
                 {
-                    if(sizechamber[k] < blacks[i]){
+                    if (chamber.size < blacks[i]) {
                         blackhead[i][j] =false;
-                    }else
-                    if(blackhead[i][j]
-                        && j +blacks[i] > chamberhead[k] +sizechamber[k])
+                    } else if(blackhead[i][j]
+                        && j +blacks[i] > chamber.head + chamber.size)
                     {
                         blackhead[i][j] = false;
                     }
@@ -307,14 +296,14 @@ bool Solver::calculateLine(
         //==================================================================
 {//
         int offsetblack =0;
-        for(int k=0; k< numchamber; ++k){
-            for(int j= chamberhead[k];
-                j< chamberhead[k] +sizechamber[k];
+        for (auto& chamber : chambers) {
+            for(int j= chamber.head;
+                j< chamber.head +chamber.size;
                 ++j)
             {
                 if(blackhead[offsetblack][j]){
                     int tail = j +blacks[offsetblack];
-                    if(tail <= chamberhead[k] +sizechamber[k]){
+                    if(tail <= chamber.head +chamber.size){
                         ++offsetblack;
                         if(offsetblack >= numblack){
                             break;
@@ -339,10 +328,11 @@ bool Solver::calculateLine(
 }//
 {//
         int offsetblack = numblack -1;
-        for(int k= numchamber -1; k>= 0; --k){
-            int indexwall = chamberhead[k] +sizechamber[k];
+        for(int k = chambers.size() -1; k >= 0; --k){
+            auto& chamber = chambers[k];
+            int indexwall = chamber.head + chamber.size;
             for(int j= indexwall -1;
-                j>= chamberhead[k];
+                j>= chamber.head;
                 --j)
             {
                 if(blackhead[offsetblack][j]){
@@ -460,9 +450,9 @@ bool Solver::calculateLine(
 
         //==================================================================
         int indexchamberstring[numstring];
-        for(int k=0; k< numstring; ++k){
-            int countchamber = numchamber -1;
-            while(chamberhead[countchamber] > stringhead[k]){
+        for (int k = 0; k < numstring; ++k){
+            int countchamber = chambers.size() -1;
+            while (chambers[countchamber].head > stringhead[k]){
                 if(--countchamber <0){
                     throw "error at line " + to_string(indexLine) + " - black string";
                 }
