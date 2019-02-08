@@ -22,6 +22,23 @@ public:
     );
 };
 
+class Hint
+{
+private:
+public:
+    int value;
+    vector<bool> headFlags;
+    vector<bool> headFlagsPrev;
+
+    Hint(int value, int size)
+    {
+        this->value = value;
+        headFlags.resize(size, true);
+        headFlagsPrev.resize(size, true);
+    }
+
+};
+
 enum State
 {
     UNKNOWN,
@@ -35,6 +52,7 @@ private:
 public:
     int head;
     int size;
+    int tail() { return head + size; }
 
     void init();
 };
@@ -68,7 +86,7 @@ private:
         int numline,
         int offset,
         int step,
-        int blacks[],
+        vector<int>&& hints,
         bool flagblack[],
         bool flagwhite[]
     );
@@ -76,6 +94,7 @@ private:
         int numline,
         bool flagwhite[]
     );
+    int getNumString(int numline, bool flagblack[]);
 
 public:
     Solver() = default;

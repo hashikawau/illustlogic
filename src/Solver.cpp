@@ -129,18 +129,12 @@ bool Solver::calculateLine(int indexLine)
         return false;
     }
 
-    int numblack = _lineHints[indexLine].hints().size();
-    int blacks[numblack];
-    for(int i=0; i< numblack; ++i){
-        blacks[i] = _lineHints[indexLine].hints()[i];
-    }
-
     bool finished = calculateLine(
         indexLine,
         numline,
         offset,
         step,
-        blacks,
+        _lineHints[indexLine].hints(),
         flagblack,
         flagwhite
     );
@@ -167,19 +161,22 @@ bool Solver::calculateLine(
     int numline,
     int offset,
     int step,
-    int blacks[],
+    vector<int>&& hints,
     bool flagblack[],
     bool flagwhite[]
 )
 {
     int numblack = _lineHints[indexLine].hints().size();
 
+    vector<Hint> blacks;
+    for (int hint : hints) {
+        blacks.push_back(Hint(hint, numline));
+    }
+
     bool blackhead[numblack][numline];
     for(int i=0; i< numblack; ++i){
-        bool doexist =true;
         for(int j=0; j< numline; ++j){
             blackhead[i][j] = true;
-            doexist &= blackhead[i][j];
         }
     }
 
@@ -199,66 +196,57 @@ bool Solver::calculateLine(
 
         vector<Chamber> chambers = createChambers(numline, flagwhite);
 
-        for(int j=0; j< numline; ++j){
-            if(flagblack[j]){
-                for(int i=0; i< numblack; ++i){
-                    if(j -blacks[i] >=0){
-                        blackhead[i][j -blacks[i]] =false;
-                    }
-                    if(j+1 < numline){
-                        blackhead[i][j+1] =false;
-                    }
-                }
+        for (int k = 0; k < numblack; ++k) {
+            for (int j = 0; j < numline; ++j) {
+                blacks[k].headFlags[j] = blackhead[k][j];
             }
-            if(flagwhite[j]){
-                for(int i=0; i< numblack; ++i){
-                    blackhead[i][j] =false;
+        }
+
+        for (auto& hint : blacks) {
+            for (int j = 0; j < numline; ++j) {
+                if (flagblack[j]) {
+                    if (j - hint.value >= 0)
+                        hint.headFlags[j - hint.value] = false;
+                    if (j + 1 < numline)
+                        hint.headFlags[j + 1] = false;
+                }
+                if (flagwhite[j]) {
+                    for (int k = 0; k < numblack; ++k) {
+                        hint.headFlags[j] = false;
+                    }
                 }
             }
         }
 
         for (auto& chamber : chambers) {
-            for(int i = 0; i < numblack; ++i){
-                for(int j = chamber.head;
-                    j < chamber.head + chamber.size;
-                    ++j)
-                {
-                    if (chamber.size < blacks[i]) {
-                        blackhead[i][j] =false;
-                    } else if(blackhead[i][j]
-                        && j +blacks[i] > chamber.head + chamber.size)
-                    {
-                        blackhead[i][j] = false;
-                    }
+            for (auto& hint : blacks) {
+                for(int j = chamber.head; j < chamber.tail(); ++j) {
+                    if (chamber.size < hint.value)
+                        hint.headFlags[j] =false;
+                    else if(hint.headFlags[j] && j +hint.value > chamber.tail())
+                        hint.headFlags[j] = false;
                 }
             }
         }
 
-        //==================================================================
 {//
         int offsetblack =0;
         for (auto& chamber : chambers) {
-            for(int j= chamber.head;
-                j< chamber.head +chamber.size;
-                ++j)
-            {
-                if(blackhead[offsetblack][j]){
-                    int tail = j +blacks[offsetblack];
-                    if(tail <= chamber.head +chamber.size){
+            for (int j = chamber.head; j < chamber.tail(); ++j) {
+                if (blacks[offsetblack].headFlags[j]) {
+                    int tail = j + hints[offsetblack];
+                    if (tail <= chamber.tail()) {
                         ++offsetblack;
-                        if(offsetblack >= numblack){
+                        if (offsetblack >= numblack) {
                             break;
                         }
-                        for(int i= offsetblack; i< numblack; ++i){
-                            for(int j2=0;
-                                j2<= min(numline -1, tail);
-                                ++j2)
-                            {
-                                blackhead[i][j2] =false;
+                        for (int i= offsetblack; i< numblack; ++i) {
+                            for(int j2 = 0; j2 <= min(numline -1, tail); ++j2) {
+                                blacks[i].headFlags[j2] = false;
                             }
                         }
-                    }else{
-                        blackhead[offsetblack][j] =false;
+                    } else {
+                        blacks[offsetblack].headFlags[j] = false;
                     }
                 }
             }
@@ -269,59 +257,41 @@ bool Solver::calculateLine(
 }//
 {//
         int offsetblack = numblack -1;
-        for(int k = chambers.size() -1; k >= 0; --k){
+        for (int k = chambers.size() -1; k >= 0; --k) {
             auto& chamber = chambers[k];
-            int indexwall = chamber.head + chamber.size;
-            for(int j= indexwall -1;
-                j>= chamber.head;
-                --j)
-            {
-                if(blackhead[offsetblack][j]){
-                    int tail = j +blacks[offsetblack];
-                    if(tail <= indexwall){
+            int indexwall = chamber.tail();
+            for (int j = indexwall -1; j >= chamber.head; --j) {
+                if (blacks[offsetblack].headFlags[j]) {
+                    int tail = j +hints[offsetblack];
+                    if (tail <= indexwall) {
                         indexwall = j -1;
                         --offsetblack;
-                        if(offsetblack <0){
+                        if (offsetblack <0) {
                             break;
                         }
-                        for(int i= offsetblack; i>= 0; --i){
-                            for(int j2= max(0, j-1);
-                                j2< numline;
-                                ++j2)
-                            {
-                                blackhead[i][j2] =false;
+                        for (int i = offsetblack; i >= 0; --i) {
+                            for(int j2 = max(0, j-1); j2 < numline; ++j2) {
+                                blacks[i].headFlags[j2] = false;
                             }
                         }
-                    }else{
-                        blackhead[offsetblack][j] =false;
+                    } else {
+                        blacks[offsetblack].headFlags[j] = false;
                     }
                 }
             }
-            if(offsetblack <0){
+            if(offsetblack < 0){
                 break;
             }
         }
 }//
 
-        //string black
-        //==================================================================
-        int numstring =0;
-{//numstring
-        bool isblack =false;
-        for(int j=0; j< numline; ++j){
-            if(flagblack[j]){
-                if(!isblack){
-                    ++numstring;
-                    //++countstring;
-                    //stringhead[countstring] = j;
-                }
-                isblack =true;
-                //++sizestring[countstring];
-            }else{
-                isblack =false;
+        for (int k = 0; k < numblack; ++k) {
+            for (int j = 0; j < numline; ++j) {
+                blackhead[k][j] = blacks[k].headFlags[j];
             }
         }
-}//numstring
+
+        int numstring = getNumString(numline, flagblack);
 
         //==================================================================
         int stringhead[numstring];
@@ -361,7 +331,7 @@ bool Solver::calculateLine(
         for(int i=0; i< numblack; ++i){
             for(int j=0; j< numline; ++j){
                 if(blackhead[i][j]){
-                    for(int k=0; k< blacks[i]; ++k){
+                    for(int k=0; k< hints[i]; ++k){
                         blackoverlap[i][j +k] |= true;
                     }
                 }
@@ -384,7 +354,7 @@ bool Solver::calculateLine(
                 }
             }
             for(int i=0; i< numblack; ++i){
-                ispossible[k][i] &= blacks[i] >= sizestring[k];
+                ispossible[k][i] &= hints[i] >= sizestring[k];
             }
         }
 }//
@@ -435,7 +405,7 @@ bool Solver::calculateLine(
                             {
                                 ispossible[k2][i] =false;
                             }else{
-                                if(stringhead[k] +blacks[index]
+                                if(stringhead[k] +hints[index]
                                     < stringhead[k2] +sizestring[k2])
                                 {
                                     ispossible[k2][i] =false;
@@ -450,7 +420,7 @@ bool Solver::calculateLine(
                             {
                                 ispossible[k2][i] =false;
                             }else{
-                                if(stringhead[k] +blacks[index]
+                                if(stringhead[k] +hints[index]
                                     < stringhead[k2] +sizestring[k2])
                                 {
                                     ispossible[k2][i] =false;
@@ -499,7 +469,7 @@ bool Solver::calculateLine(
             for(int i= numblack -1; i>= 0; --i){
                 if(ispossible[k][i]){
                     for(int j=0;
-                        j< stringhead[k] +sizestring[k] -blacks[i];
+                        j< stringhead[k] +sizestring[k] -hints[i];
                         ++j)
                     {
                         blackhead[i][j] =false;
@@ -535,7 +505,7 @@ bool Solver::calculateLine(
                     }
                     for(int j= max(
                             0,
-                            stringhead[k] +sizestring[k] -blacks[i]);
+                            stringhead[k] +sizestring[k] -hints[i]);
                         j<= stringhead[k];
                         ++j)
                     {
@@ -543,16 +513,16 @@ bool Solver::calculateLine(
                             for(int j2= 0; j2< j; ++j2){
                                 blackoverlapsolo[j2] =false;
                             }
-                            for(int j2= j +blacks[i]; j2< numline; ++j2){
+                            for(int j2= j +hints[i]; j2< numline; ++j2){
                                 blackoverlapsolo[j2] =false;
                             }
                             for(int j2= 0; j2< j -1; ++j2){
                                 whiteoverlapsolo[j2] =false;
                             }
-                            for(int j2= j; j2< j +blacks[i]; ++j2){
+                            for(int j2= j; j2< j +hints[i]; ++j2){
                                 whiteoverlapsolo[j2] =false;
                             }
-                            for(int j2= j +blacks[i] +1; j2< numline; ++j2){
+                            for(int j2= j +hints[i] +1; j2< numline; ++j2){
                                 whiteoverlapsolo[j2] =false;
                             }
                         }
@@ -596,10 +566,10 @@ bool Solver::calculateLine(
                     for(int k=0; k< j; ++k){
                         blackoverlapsolo[k] =false;
                     }
-                    for(int k= j; k< j +blacks[i]; ++k){
+                    for(int k= j; k< j +hints[i]; ++k){
                         whiteoverlap[k] =false;
                     }
-                    for(int k= j +blacks[i]; k< numline; ++k){
+                    for(int k= j +hints[i]; k< numline; ++k){
                         blackoverlapsolo[k] =false;
                     }
                 }
@@ -662,6 +632,23 @@ vector<Chamber> Solver::createChambers(
     }
 
     return chambers;
+}
+
+int Solver::getNumString(int numline, bool flagblack[])
+{
+    int numstring =0;
+    bool isblack = false;
+    for (int j = 0; j < numline; ++j) {
+        if (flagblack[j]) {
+            if (!isblack) {
+                ++numstring;
+            }
+            isblack = true;
+        } else {
+            isblack = false;
+        }
+    }
+    return numstring;
 }
 
 void Solver::printHints() {
