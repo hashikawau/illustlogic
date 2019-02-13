@@ -1,6 +1,9 @@
 
 objs = \
-    test.o
+    main.o
+
+tests = \
+    SolverTest.hpp
 
 external_objs = \
     ../src/Solver.o \
@@ -14,7 +17,7 @@ all:
 test: $(objs) $(external_objs)
 	g++ -o $@ $(objs) $(external_objs)
 
-%.o: %.cpp ../src/Solver.h
+%.o: %.cpp ../src/Solver.h $(tests)
 	g++ -c -g -o $@ $< -I../src/
 
 clean:
